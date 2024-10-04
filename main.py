@@ -1,42 +1,74 @@
-from decimal import Decimal
-from calculator.calculation import MathOperation
-from calculator.calculations import OperationHistory
-from calculator.operations import addition, subtraction, multiplication, division
 from calculator import ArithmeticEngine
+from calculator.calculations import OperationHistory
+from decimal import Decimal, InvalidOperation
 
-def main():
+def calculate_and_store(a, b, operation_name):
+    """Performs the calculation and stores it in history."""
+    # Map the operations
+    operation_mappings = {
+        'add': ArithmeticEngine.add,
+        'subtract': ArithmeticEngine.subtract,
+        'multiply': ArithmeticEngine.multiply,
+        'divide': ArithmeticEngine.divide
+    }
+    
+    try:
+        # Convert input to Decimal
+        a_decimal, b_decimal = map(Decimal, [a, b])
+        
+        # Check if the operation exists in the mapping
+        operation = operation_mappings.get(operation_name)
+        
+        if operation:
+            # Perform the operation
+            result = operation(a_decimal, b_decimal)
+            print(f"The result of {operation_name} between {a} and {b} is {result}")
+        else:
+            print(f"Unknown operation: {operation_name}")
+            return
+        
+        # Store the operation in history
+        OperationHistory.record(result)
+        
+    except ZeroDivisionError:
+        print("Error: Division by zero.")
+    except InvalidOperation:
+        print(f"Invalid number input: {a} or {b} is not a valid number.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def interactive_calculator():
     print("Welcome to the interactive calculator! Type 'exit' to quit.")
+    print("Type 'history' to view past calculations or 'clear_history' to clear them.")
+    
     while True:
         user_input = input("Enter a command (add, subtract, multiply, divide) followed by two numbers: ").strip()
 
         if user_input.lower() == 'exit':
             print("Goodbye!")
             break
-
-        try:
-            command, num1, num2 = user_input.split()
-            num1, num2 = Decimal(num1), Decimal(num2)
-
-            if command == 'add':
-                result = ArithmeticEngine.add(num1, num2)
-            elif command == 'subtract':
-                result = ArithmeticEngine.subtract(num1, num2)
-            elif command == 'multiply':
-                result = ArithmeticEngine.multiply(num1, num2)
-            elif command == 'divide':
-                result = ArithmeticEngine.divide(num1, num2)
+        elif user_input.lower() == 'history':
+            # View the history of calculations
+            history = OperationHistory.retrieve_all()
+            if history:
+                for idx, operation in enumerate(history, 1):
+                    print(f"{idx}: {operation}")
             else:
-                print(f"Unknown command: {command}")
-                continue
-
-            print(f"Result: {result}")
-        except ZeroDivisionError as e:
-            print(e)
-        except ValueError:
-            print("Invalid input. Please provide a command followed by two numbers.")
-        except Exception as e:
-            print(f"Error: {e}")
+                print("No history available.")
+        elif user_input.lower() == 'clear_history':
+            # Clear the calculation history
+            OperationHistory.clear_all()
+            print("Calculation history cleared.")
+        else:
+            try:
+                command, num1, num2 = user_input.split()
+                # Perform and store the calculation
+                calculate_and_store(num1, num2, command)
+            except ValueError:
+                print("Invalid input. Please provide a command followed by two numbers.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    main()
+    interactive_calculator()
 
