@@ -1,61 +1,42 @@
-import sys
+from decimal import Decimal
+from calculator.calculation import MathOperation
+from calculator.calculations import OperationHistory
+from calculator.operations import addition, subtraction, multiplication, division
 from calculator import ArithmeticEngine
-from decimal import Decimal, InvalidOperation
-
-def calculate_and_print(a, b, operation_name):
-    # Map both old and new operation names
-    operation_mappings = {
-        'add': ArithmeticEngine.add,
-        'addition': ArithmeticEngine.add,
-        'subtract': ArithmeticEngine.subtract,
-        'subtraction': ArithmeticEngine.subtract,
-        'multiply': ArithmeticEngine.multiply,
-        'multiplication': ArithmeticEngine.multiply,
-        'divide': ArithmeticEngine.divide,
-        'division': ArithmeticEngine.divide,
-    }
-
-    try:
-        # Convert input to Decimal
-        a_decimal, b_decimal = map(Decimal, [a, b])
-
-        # Check if the operation exists in the mapping
-        result = operation_mappings.get(operation_name)
-
-        if result:
-            # Perform the operation and print the result
-            print(f"The result of {a} {operation_name} {b} is equal to {result(a_decimal, b_decimal)}")
-        else:
-            # Handle unknown operation
-            print(f"Unknown operation: {operation_name}")
-            sys.exit(1)
-
-    # Handle division by zero first before generic exceptions
-    except ZeroDivisionError:
-        print("Error: Division by zero.")  # This should be triggered
-        sys.exit(1)
-
-    # Handle invalid decimal input
-    except InvalidOperation:
-        print(f"Invalid number input: {a} or {b} is not a valid number.")
-        sys.exit(1)
-
-    # Handle unexpected exceptions
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        sys.exit(1)
 
 def main():
-    # Check that the user provided the correct number of arguments
-    if len(sys.argv) != 4:
-        print("Usage: python main.py <number1> <number2> <operation>")
-        sys.exit(1)
+    print("Welcome to the interactive calculator! Type 'exit' to quit.")
+    while True:
+        user_input = input("Enter a command (add, subtract, multiply, divide) followed by two numbers: ").strip()
 
-    # Unpack command-line arguments
-    _, a, b, operation = sys.argv
+        if user_input.lower() == 'exit':
+            print("Goodbye!")
+            break
 
-    # Call the function to perform the operation
-    calculate_and_print(a, b, operation)
+        try:
+            command, num1, num2 = user_input.split()
+            num1, num2 = Decimal(num1), Decimal(num2)
 
-if __name__ == '__main__':
+            if command == 'add':
+                result = ArithmeticEngine.add(num1, num2)
+            elif command == 'subtract':
+                result = ArithmeticEngine.subtract(num1, num2)
+            elif command == 'multiply':
+                result = ArithmeticEngine.multiply(num1, num2)
+            elif command == 'divide':
+                result = ArithmeticEngine.divide(num1, num2)
+            else:
+                print(f"Unknown command: {command}")
+                continue
+
+            print(f"Result: {result}")
+        except ZeroDivisionError as e:
+            print(e)
+        except ValueError:
+            print("Invalid input. Please provide a command followed by two numbers.")
+        except Exception as e:
+            print(f"Error: {e}")
+
+if __name__ == "__main__":
     main()
+
