@@ -2,16 +2,28 @@ from calculator import ArithmeticEngine
 from calculator.calculations import OperationHistory
 from decimal import Decimal, InvalidOperation
 
+# Available commands
+operation_mappings = {
+    'add': ArithmeticEngine.add,
+    'subtract': ArithmeticEngine.subtract,
+    'multiply': ArithmeticEngine.multiply,
+    'divide': ArithmeticEngine.divide
+}
+
+def display_menu():
+    """Displays the list of available commands."""
+    print("Available commands:")
+    print("  add: Add two numbers")
+    print("  subtract: Subtract two numbers")
+    print("  multiply: Multiply two numbers")
+    print("  divide: Divide two numbers")
+    print("  history: View calculation history")
+    print("  clear_history: Clear calculation history")
+    print("  menu: Show available commands")
+    print("  exit: Exit the calculator")
+
 def calculate_and_store(a, b, operation_name):
     """Performs the calculation and stores it in history."""
-    # Map the operations
-    operation_mappings = {
-        'add': ArithmeticEngine.add,
-        'subtract': ArithmeticEngine.subtract,
-        'multiply': ArithmeticEngine.multiply,
-        'divide': ArithmeticEngine.divide
-    }
-    
     try:
         # Convert input to Decimal
         a_decimal, b_decimal = map(Decimal, [a, b])
@@ -38,7 +50,9 @@ def calculate_and_store(a, b, operation_name):
         print(f"An error occurred: {e}")
 
 def interactive_calculator():
-    print("Welcome to the interactive calculator! Type 'exit' to quit.")
+    # Display welcome message
+    print("Welcome to the interactive calculator!")
+    print("Type 'menu' to see the available commands or 'exit' to quit.")
     print("Type 'history' to view past calculations or 'clear_history' to clear them.")
     
     while True:
@@ -47,6 +61,8 @@ def interactive_calculator():
         if user_input.lower() == 'exit':
             print("Goodbye!")
             break
+        elif user_input.lower() == 'menu':
+            display_menu()
         elif user_input.lower() == 'history':
             # View the history of calculations
             history = OperationHistory.retrieve_all()
