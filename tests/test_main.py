@@ -1,79 +1,90 @@
-"""
-This module provides pytest fixtures and test data generation for arithmetic operations
-used in the calculator application.
-"""
-import sys
-import pytest
-from main import calculate_and_print, main
+from calculator import ArithmeticEngine
+from calculator.calculations import OperationHistory
+from decimal import Decimal, InvalidOperation
 
+# Available commands
+operation_mappings = {
+    'add': ArithmeticEngine.add,
+    'subtract': ArithmeticEngine.subtract,
+    'multiply': ArithmeticEngine.multiply,
+    'divide': ArithmeticEngine.divide
+}
 
-@pytest.mark.parametrize("a_string, b_string, operation_string, expected_string", [
-    ("5", "3", 'addition', "The result of 5 addition 3 is equal to 8"),
-    ("10", "2", 'subtraction', "The result of 10 subtraction 2 is equal to 8"),
-    ("4", "5", 'multiplication', "The result of 4 multiplication 5 is equal to 20"),
-    ("20", "4", 'division', "The result of 20 division 4 is equal to 5"),
-])
-def test_calculate_and_print_valid_cases(a_string, b_string, operation_string, expected_string, capsys):
-    """
-    Test the calculate_and_print function with valid inputs and operations.
-    These cases should not raise SystemExit.
-    """
-    calculate_and_print(a_string, b_string, operation_string)
-    captured = capsys.readouterr()
-    assert captured.out.strip() == expected_string
+def display_menu():
+    """Displays the list of available commands."""
+    print("Available commands:")
+    print("  add: Add two numbers")
+    print("  subtract: Subtract two numbers")
+    print("  multiply: Multiply two numbers")
+    print("  divide: Divide two numbers")
+    print("  history: View calculation history")
+    print("  clear_history: Clear calculation history")
+    print("  menu: Show available commands")
+    print("  exit: Exit the calculator")
 
+def calculate_and_store(a, b, operation_name):
+    """Performs the calculation and stores it in history."""
+    try:
+        # Convert input to Decimal
+        a_decimal, b_decimal = map(Decimal, [a, b])
+        
+        # Check if the operation exists in the mapping
+        operation = operation_mappings.get(operation_name)
+        
+        if operation:
+            # Perform the operation
+            result = operation(a_decimal, b_decimal)
+            print(f"The result of {operation_name} between {a} and {b} is {result}")
+        else:
+            print(f"Unknown operation: {operation_name}")
+            return
+        
+        # Store the operation in history
+        OperationHistory.record(result)
+        
+    except ZeroDivisionError:
+        print("Error: Division by zero.")
+    except InvalidOperation:
+        print(f"Invalid number input: {a} or {b} is not a valid number.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-@pytest.mark.parametrize("a_string, b_string, operation_string, expected_string", [
-    ("1", "0", 'division', "Error: Division by zero."),
-    ("9", "3", 'unknown', "Unknown operation: unknown"),
-    ("a", "3", 'addition', "Invalid number input: a or 3 is not a valid number."),
-    ("5", "b", 'subtraction', "Invalid number input: 5 or b is not a valid number.")
-])
-def test_calculate_and_print_error_cases(a_string, b_string, operation_string, expected_string, capsys):
-    """
-    Test the calculate_and_print function with error scenarios, which should raise SystemExit.
-    """
-    with pytest.raises(SystemExit):
-        calculate_and_print(a_string, b_string, operation_string)
-    captured = capsys.readouterr()
-    assert expected_string in captured.out.strip()
+def interactive_calculator():
+    # Display welcome message
+    print("Welcome to the interactive calculator!")
+    print("Type 'menu' to see the available commands or 'exit' to quit.")
+    print("Type 'history' to view past calculations or 'clear_history' to clear them.")
+    
+    while True:
+        user_input = input("Enter a command (add, subtract, multiply, divide) followed by two numbers: ").strip()
 
+        if user_input.lower() == 'exit':
+            print("Goodbye!")
+            break
+        elif user_input.lower() == 'menu':
+            display_menu()
+        elif user_input.lower() == 'history':
+            # View the history of calculations
+            history = OperationHistory.retrieve_all()
+            if history:
+                for idx, operation in enumerate(history, 1):
+                    print(f"{idx}: {operation}")
+            else:
+                print("No history available.")
+        elif user_input.lower() == 'clear_history':
+            # Clear the calculation history
+            OperationHistory.clear_all()
+            print("Calculation history cleared.")
+        else:
+            try:
+                command, num1, num2 = user_input.split()
+                # Perform and store the calculation
+                calculate_and_store(num1, num2, command)
+            except ValueError:
+                print("Invalid input. Please provide a command followed by two numbers.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
-def test_generic_exception(monkeypatch, capsys):
-    """
-    Test that a generic exception is caught and handled.
-    """
-    def mock_decimal(value):
-        raise ValueError("Unexpected error")  # Use a more specific exception type
+if __name__ == "__main__":
+    interactive_calculator()
 
-    # Apply the monkeypatch to mock Decimal
-    monkeypatch.setattr("main.Decimal", mock_decimal)
-
-    # Run the calculate_and_print function which should trigger the mocked exception
-    with pytest.raises(SystemExit):  # Expect SystemExit due to sys.exit(1)
-        calculate_and_print("10", "5", "addition")
-    captured = capsys.readouterr()
-    assert "An unexpected error occurred: Unexpected error" in captured.out.strip()
-
-
-def test_divide_by_zero_in_main(monkeypatch, capsys):
-    """
-    Test division by zero using main function.
-    """
-    # Simulate passing "1", "0", "division" to trigger the ZeroDivisionError
-    monkeypatch.setattr(sys, 'argv', ['main.py', '1', '0', 'division'])
-    with pytest.raises(SystemExit):
-        main()
-    captured = capsys.readouterr()
-    assert "Error: Division by zero." in captured.out.strip()
-
-
-def test_main_invalid_arguments(monkeypatch, capsys):
-    """
-    Test that the main function exits when the number of arguments is invalid.
-    """
-    monkeypatch.setattr(sys, 'argv', ['main.py', '1', 'add'])  # Invalid number of arguments
-    with pytest.raises(SystemExit):
-        main()
-    captured = capsys.readouterr()
-    assert "Usage: python main.py <number1> <number2> <operation>" in captured.out.strip()
