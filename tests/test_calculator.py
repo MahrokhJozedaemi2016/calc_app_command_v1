@@ -1,6 +1,7 @@
 import pytest
 from calculator.calculator import Calculator
 from calculator.commands import AddCommand, SubtractCommand, MultiplyCommand, DivideCommand
+import multiprocessing
 
 # Fixture to set up a calculator instance before each test
 @pytest.fixture
@@ -35,6 +36,30 @@ def test_divide_by_zero(calc):
         calc.compute(divide_command)
 
 # New Tests to Improve Coverage
+
+# Test initial state of the Calculator object (Lines 7-8)
+def test_calculator_initial_state():
+    calc = Calculator()
+    assert calc.history == [], "History should be initialized as an empty list"
+    assert calc.plugins == {}, "Plugins should be initialized as an empty dictionary"
+
+# Test compute_with_multiprocessing for AddCommand (Lines 23-30)
+def test_compute_with_multiprocessing_add_command():
+    calc = Calculator()
+    add_command = AddCommand(10, 5)
+    
+    # Use multiprocessing context to avoid issues in pytest
+    multiprocessing.set_start_method('fork', force=True)  # Ensure correct multiprocessing start method
+    calc.compute_with_multiprocessing(add_command)
+
+# Test compute_with_multiprocessing for DivideCommand (Lines 23-30)
+def test_compute_with_multiprocessing_divide_command():
+    calc = Calculator()
+    divide_command = DivideCommand(20, 4)
+
+    # Use multiprocessing context to avoid issues in pytest
+    multiprocessing.set_start_method('fork', force=True)  # Ensure correct multiprocessing start method
+    calc.compute_with_multiprocessing(divide_command)
 
 # Test Plugin Loading (Success Case)
 def test_load_plugin_success():

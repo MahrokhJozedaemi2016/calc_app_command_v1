@@ -44,7 +44,6 @@ def test_find_by_operation():
     
     assert len(add_operations) >= 1, "Expected at least one addition operation in history."
 
-
 def test_divide_by_zero():
     """
     Test division by zero to ensure it raises a ValueError.
@@ -55,3 +54,17 @@ def test_divide_by_zero():
     calc = Calculation(Decimal('10'), Decimal('0'), divide)
     with pytest.raises(ValueError, match="Cannot divide by zero"):
         calc.perform()
+
+def test_calculation_create():
+    """Test the creation of Calculation object using the static create method."""
+    calc = Calculation.create(Decimal('10'), Decimal('5'), add)
+    assert isinstance(calc, Calculation), "Failed to create Calculation using static method"
+    assert calc.a == Decimal('10'), "Operand a is incorrect"
+    assert calc.b == Decimal('5'), "Operand b is incorrect"
+    assert calc.operation == add, "Operation is incorrect"
+
+def test_calculation_repr():
+    """Test the string representation of a Calculation object."""
+    calc = Calculation(Decimal('10'), Decimal('5'), add)
+    repr_str = repr(calc)
+    assert repr_str == "Calculation(a=10, b=5, operation=add)", "String representation is incorrect"
