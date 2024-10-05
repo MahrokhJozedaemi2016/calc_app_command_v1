@@ -7,6 +7,7 @@ from calculator.commands import AddCommand, SubtractCommand, MultiplyCommand, Di
 def calc():
     return Calculator()
 
+# Existing Tests
 def test_add_command(calc):
     add_command = AddCommand(10, 5)
     result = calc.compute(add_command)
@@ -32,3 +33,32 @@ def test_divide_by_zero(calc):
     divide_command = DivideCommand(10, 0)
     with pytest.raises(ValueError, match="Cannot divide by zero"):
         calc.compute(divide_command)
+
+# New Tests to Improve Coverage
+
+# Test Plugin Loading (Success Case)
+def test_load_plugin_success():
+    calc = Calculator()
+    calc.load_plugin('add_plugin')  # Assuming add_plugin exists
+    assert 'add_plugin' in calc.plugins  # Verify the plugin is loaded
+    assert calc.plugins['add_plugin'] is not None  # Ensure plugin is registered
+
+# Test Plugin Loading (Failure Case)
+def test_load_plugin_failure():
+    calc = Calculator()
+    with pytest.raises(ImportError, match="Failed to load plugin: non_existent_plugin"):
+        calc.load_plugin('non_existent_plugin')  # Test for a plugin that doesn’t exist
+
+# Test Command Creation (Success Case)
+def test_create_command_success():
+    calc = Calculator()
+    calc.load_plugin('add_plugin')  # Assuming add_plugin exists
+    command = calc.create_command('add_plugin', 2, 3)  # Create add command with 2 and 3
+    assert command is not None  # Ensure command is created successfully
+    assert command.execute() == 5  # Ensure the command works correctly
+
+# Test Command Creation (Failure Case)
+def test_create_command_failure():
+    calc = Calculator()
+    with pytest.raises(ValueError, match="Plugin not found: non_existent_plugin"):
+        calc.create_command('non_existent_plugin', 2, 3)  # Test for plugin that hasn’t been loaded
