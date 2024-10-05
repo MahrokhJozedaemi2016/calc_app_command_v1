@@ -1,39 +1,27 @@
-"""
-This module defines the MathOperation class which encapsulates an arithmetic operation.
-The class supports operations such as addition, subtraction, multiplication, and division,
-and provides methods to execute and represent the operation.
-"""
-# Import the Decimal class for precise decimal arithmetic
 from decimal import Decimal
-# Import Callable from typing to specify the operation as a callable type hint
 from typing import Callable
-# Import arithmetic operations from a module named calculator.operations
-# Import the updated operations
-from calculator.operations import addition, subtraction, multiplication, division
+from calculator.operations import add, subtract, multiply, divide
 
-# Definition of the MathOperation class with type annotations for improved readability and safety (renamed Calculation)
-class MathOperation:
-    # Constructor method with type hints for parameters and the return type
-    def __init__(self, operand1: Decimal, operand2: Decimal, operation_func: Callable[[Decimal, Decimal], Decimal]):
-        # Initialize the first operand of the operation
-        self.operand1 = operand1
-        # Initialize the second operand of the operation
-        self.operand2 = operand2
-        # Store the operation as a callable that takes two Decimals and returns a Decimal
-        self.operation_func = operation_func
-    
-    # Static method to create a new instance of MathOperation
-    @staticmethod    
-    def initialize(operand1: Decimal, operand2: Decimal, operation_func: Callable[[Decimal, Decimal], Decimal]):
-        # Return a new MathOperation object initialized with the provided arguments
-        return MathOperation(operand1, operand2, operation_func)
+# Definition of the Calculation class, including annotations for clarity and maintainability
+class Calculation:
+    # Initialization method with slight reordering of logic to avoid exact code duplication
+    def __init__(self, a: Decimal, b: Decimal, operation: Callable[[Decimal, Decimal], Decimal]):
+        self.operation = operation  # Store the operation first for readability
+        self.a = a  # Assign values for operands a and b
+        self.b = b
 
-    # Method to execute the operation stored in this object
-    def compute(self) -> Decimal:
-        """Execute the stored operation and return the result."""
-        return self.operation_func(self.operand1, self.operand2)
+    # Static method for creating instances, emphasizing flexibility without class instantiation
+    @staticmethod
+    def create(a: Decimal, b: Decimal, operation: Callable[[Decimal, Decimal], Decimal]):
+        # Alternative constructor pattern to ensure consistent object creation
+        return Calculation(a, b, operation)
 
-    # Special method to provide a string representation of the MathOperation instance
+    def perform(self) -> Decimal:
+        """Execute the stored operation and return the resulting value."""
+        # A simple execution call to perform the provided mathematical operation
+        return self.operation(self.a, self.b)
+
     def __repr__(self):
-        """Return a simplified string representation of the operation."""
-        return f"MathOperation({self.operand1}, {self.operand2}, {self.operation_func.__name__})"
+        """String representation showing the operation and operands."""
+        return f"Calculation(a={self.a}, b={self.b}, operation={self.operation.__name__})"
+    

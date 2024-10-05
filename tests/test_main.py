@@ -1,90 +1,20 @@
-from calculator import ArithmeticEngine
-from calculator.calculations import OperationHistory
-from decimal import Decimal, InvalidOperation
+import pytest
+from main import calculate_and_print  # Ensure this import matches your project structure
 
-# Available commands
-operation_mappings = {
-    'add': ArithmeticEngine.add,
-    'subtract': ArithmeticEngine.subtract,
-    'multiply': ArithmeticEngine.multiply,
-    'divide': ArithmeticEngine.divide
-}
+@pytest.mark.parametrize("a_string, b_string, operation_string, expected_string", [
+    ("5", "3", 'add', "The result of 5 add 3 is equal to 8"),
+    ("10", "2", 'subtract', "The result of 10 subtract 2 is equal to 8"),
+    ("4", "5", 'multiply', "The result of 4 multiply 5 is equal to 20"),
+    ("20", "4", 'divide', "The result of 20 divide 4 is equal to 5"),
+    ("1", "1", 'divide', "The result of 1 divide 1 is equal to 1"),
+    ("1", "0", 'divide', "An error occurred: Cannot divide by zero."),  # Handling divide by zero
+    ("9", "3", 'unknown', "Unknown operation: unknown."),  # Added period for clarity
+    ("a", "3", 'add', "Invalid number input: a or 3 is not a valid number."),  # Added period for consistency
+    ("5", "b", 'subtract', "Invalid number input: 5 or b is not a valid number.")  # Added period for consistency
+])
 
-def display_menu():
-    """Displays the list of available commands."""
-    print("Available commands:")
-    print("  add: Add two numbers")
-    print("  subtract: Subtract two numbers")
-    print("  multiply: Multiply two numbers")
-    print("  divide: Divide two numbers")
-    print("  history: View calculation history")
-    print("  clear_history: Clear calculation history")
-    print("  menu: Show available commands")
-    print("  exit: Exit the calculator")
-
-def calculate_and_store(a, b, operation_name):
-    """Performs the calculation and stores it in history."""
-    try:
-        # Convert input to Decimal
-        a_decimal, b_decimal = map(Decimal, [a, b])
-        
-        # Check if the operation exists in the mapping
-        operation = operation_mappings.get(operation_name)
-        
-        if operation:
-            # Perform the operation
-            result = operation(a_decimal, b_decimal)
-            print(f"The result of {operation_name} between {a} and {b} is {result}")
-        else:
-            print(f"Unknown operation: {operation_name}")
-            return
-        
-        # Store the operation in history
-        OperationHistory.record(result)
-        
-    except ZeroDivisionError:
-        print("Error: Division by zero.")
-    except InvalidOperation:
-        print(f"Invalid number input: {a} or {b} is not a valid number.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-def interactive_calculator():
-    # Display welcome message
-    print("Welcome to the interactive calculator!")
-    print("Type 'menu' to see the available commands or 'exit' to quit.")
-    print("Type 'history' to view past calculations or 'clear_history' to clear them.")
-    
-    while True:
-        user_input = input("Enter a command (add, subtract, multiply, divide) followed by two numbers: ").strip()
-
-        if user_input.lower() == 'exit':
-            print("Goodbye!")
-            break
-        elif user_input.lower() == 'menu':
-            display_menu()
-        elif user_input.lower() == 'history':
-            # View the history of calculations
-            history = OperationHistory.retrieve_all()
-            if history:
-                for idx, operation in enumerate(history, 1):
-                    print(f"{idx}: {operation}")
-            else:
-                print("No history available.")
-        elif user_input.lower() == 'clear_history':
-            # Clear the calculation history
-            OperationHistory.clear_all()
-            print("Calculation history cleared.")
-        else:
-            try:
-                command, num1, num2 = user_input.split()
-                # Perform and store the calculation
-                calculate_and_store(num1, num2, command)
-            except ValueError:
-                print("Invalid input. Please provide a command followed by two numbers.")
-            except Exception as e:
-                print(f"An error occurred: {e}")
-
-if __name__ == "__main__":
-    interactive_calculator()
-
+def test_calculate_and_print(a_string, b_string, operation_string, expected_string, capsys):
+    """Test the calculate_and_print function with various inputs."""
+    calculate_and_print(a_string, b_string, operation_string)
+    captured = capsys.readouterr().out.strip().rstrip(".")
+    assert captured == expected_string.rstrip(".")

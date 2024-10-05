@@ -1,39 +1,34 @@
-"""
-This module manages the history of calculations performed by the MathOperation class.
-It provides methods for adding new calculations, retrieving the history, and clearing the history.
-"""
 from decimal import Decimal
 from typing import Callable, List
+from calculator.calculation import Calculation
 
-from calculator.calculation import MathOperation  # Renamed Calculation to MathOperation
-
-class OperationHistory:
-    # Renamed the class from Calculations to OperationHistory
-    records: List[MathOperation] = []
+class Calculations:
+    history: List[Calculation] = []  # Class-level attribute for storing calculation history
 
     @classmethod
-    def record(cls, operation: MathOperation):
-        """Record a new operation in the history."""
-        cls.records.append(operation)
+    def add_calculation(cls, calculation: Calculation):
+        """Add a new calculation to the history."""
+        cls.history.append(calculation)
 
     @classmethod
-    def retrieve_all(cls) -> List[MathOperation]:
-        """Retrieve the complete operation history."""
-        return cls.records
+    def get_history(cls) -> List[Calculation]:
+        """Retrieve the entire calculation history."""
+        # Return a copy of the history to avoid accidental modification
+        return cls.history.copy()
 
     @classmethod
-    def clear_all(cls):
-        """Clear the entire operation history."""
-        cls.records.clear()
+    def clear_history(cls):
+        """Completely clear the stored history of calculations."""
+        cls.history.clear()
 
     @classmethod
-    def get_latest_record(cls) -> MathOperation:
-        """Get the most recent operation. Returns None if no history is available."""
-        if cls.records:
-            return cls.records[-1]
-        return None
+    def get_latest(cls) -> Calculation:
+        """Get the latest calculation. Returns None if no history exists."""
+        # Simplified return expression for clarity
+        return cls.history[-1] if cls.history else None
 
     @classmethod
-    def find_by_operation_name(cls, operation_name: str) -> List[MathOperation]:
-        """Find and return a list of operations by their operation name."""
-        return [op for op in cls.records if op.operation_func.__name__ == operation_name]
+    def find_by_operation(cls, operation_name: str) -> List[Calculation]:
+        """Find and return a list of calculations by operation name."""
+        # Use list comprehension to search for calculations with the specified operation
+        return [calc for calc in cls.history if calc.operation.__name__ == operation_name]

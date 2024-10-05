@@ -1,46 +1,48 @@
-from calculator import ArithmeticEngine
-from calculator.calculations import OperationHistory
+from calculator.calculator import Calculator
+from calculator.calculations import Calculations
+from calculator.commands import AddCommand, SubtractCommand, MultiplyCommand, DivideCommand  # Import command classes
 from decimal import Decimal, InvalidOperation
 
-# Available commands
+# Available command mappings
 operation_mappings = {
-    'add': ArithmeticEngine.add,
-    'subtract': ArithmeticEngine.subtract,
-    'multiply': ArithmeticEngine.multiply,
-    'divide': ArithmeticEngine.divide
+    'add': AddCommand,
+    'subtract': SubtractCommand,
+    'multiply': MultiplyCommand,
+    'divide': DivideCommand
 }
 
 def display_menu():
     """Displays the list of available commands."""
-    print("Available commands:")
+    print("\nAvailable commands:")
     print("  add: Add two numbers")
     print("  subtract: Subtract two numbers")
     print("  multiply: Multiply two numbers")
     print("  divide: Divide two numbers")
     print("  history: View calculation history")
     print("  clear_history: Clear calculation history")
-    print("  menu: Show available commands")
     print("  exit: Exit the calculator")
 
 def calculate_and_store(a, b, operation_name):
     """Performs the calculation and stores it in history."""
     try:
-        # Convert input to Decimal
+        # Convert inputs to Decimal
         a_decimal, b_decimal = map(Decimal, [a, b])
         
         # Check if the operation exists in the mapping
-        operation = operation_mappings.get(operation_name)
+        CommandClass = operation_mappings.get(operation_name)
         
-        if operation:
-            # Perform the operation
-            result = operation(a_decimal, b_decimal)
+        if CommandClass:
+            # Create a command object for the operation
+            command = CommandClass(a_decimal, b_decimal)
+            calc = Calculator()
+            result = calc.compute(command)
             print(f"The result of {operation_name} between {a} and {b} is {result}")
         else:
             print(f"Unknown operation: {operation_name}")
             return
         
-        # Store the operation in history
-        OperationHistory.record(result)
+        # Store the calculation in history
+        Calculations.add_calculation(command)
         
     except ZeroDivisionError:
         print("Error: Division by zero.")
@@ -49,42 +51,51 @@ def calculate_and_store(a, b, operation_name):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def prompt_for_numbers(operation_name):
+    """Prompts the user to input two numbers for the operation."""
+    print(f"\nEnter two numbers for {operation_name}:")
+    try:
+        a = input("Enter the first number: ")
+        b = input("Enter the second number: ")
+        return a, b
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None
+
 def interactive_calculator():
-    # Display welcome message
+    """Runs the interactive calculator."""
+    # Display initial welcome message
     print("Welcome to the interactive calculator!")
     print("Type 'menu' to see the available commands or 'exit' to quit.")
-    print("Type 'history' to view past calculations or 'clear_history' to clear them.")
-    
-    while True:
-        user_input = input("Enter a command (add, subtract, multiply, divide) followed by two numbers: ").strip()
 
-        if user_input.lower() == 'exit':
+    while True:
+        user_input = input("\nEnter a command: ").strip().lower()
+
+        if user_input == 'exit':
             print("Goodbye!")
             break
-        elif user_input.lower() == 'menu':
+        elif user_input == 'menu':
             display_menu()
-        elif user_input.lower() == 'history':
+        elif user_input == 'history':
             # View the history of calculations
-            history = OperationHistory.retrieve_all()
+            history = Calculations.get_history()
             if history:
                 for idx, operation in enumerate(history, 1):
                     print(f"{idx}: {operation}")
             else:
                 print("No history available.")
-        elif user_input.lower() == 'clear_history':
+        elif user_input == 'clear_history':
             # Clear the calculation history
-            OperationHistory.clear_all()
+            Calculations.clear_history()
             print("Calculation history cleared.")
-        else:
-            try:
-                command, num1, num2 = user_input.split()
+        elif user_input in operation_mappings:
+            # If the user input matches an operation, prompt for two numbers
+            a, b = prompt_for_numbers(user_input)
+            if a and b:
                 # Perform and store the calculation
-                calculate_and_store(num1, num2, command)
-            except ValueError:
-                print("Invalid input. Please provide a command followed by two numbers.")
-            except Exception as e:
-                print(f"An error occurred: {e}")
+                calculate_and_store(a, b, user_input)
+        else:
+            print("Invalid input. Please type 'menu' to see the available commands.")
 
 if __name__ == "__main__":
     interactive_calculator()
-

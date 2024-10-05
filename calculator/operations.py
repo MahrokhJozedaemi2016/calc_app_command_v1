@@ -1,21 +1,20 @@
-"""
-This module provides basic arithmetic operations: addition, subtraction, multiplication, and division.
-Each function accepts two Decimal operands and returns the result of the operation.
-"""
 from decimal import Decimal
 
-# Define the arithmetic functions with updated names
-def addition(x: Decimal, y: Decimal) -> Decimal:
-    return x + y
+# Define the functions with type hints
+def add(a: Decimal, b: Decimal) -> Decimal:
+    """Perform addition of two Decimal numbers."""
+    return a + b
 
-def subtraction(x: Decimal, y: Decimal) -> Decimal:
-    return x - y
+def subtract(a: Decimal, b: Decimal) -> Decimal:
+    """Perform subtraction of two Decimal numbers."""
+    return a - b
 
-def multiplication(x: Decimal, y: Decimal) -> Decimal:
-    return x * y
+def multiply(a: Decimal, b: Decimal) -> Decimal:
+    """Perform multiplication of two Decimal numbers."""
+    return a * b
 
-def division(x: Decimal, y: Decimal) -> Decimal:
-    if y == 0:
+def divide(a: Decimal, b: Decimal) -> Decimal:
+    """Perform division of two Decimal numbers, checking for division by zero."""
+    if b == 0:
         raise ValueError("Cannot divide by zero")
-    return x / y
-
+    return a / b

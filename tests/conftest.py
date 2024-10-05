@@ -1,78 +1,57 @@
-"""
-This module provides pytest fixtures and test data generation for arithmetic operations
-used in the calculator application.
-"""
-
+import pytest
 from decimal import Decimal
 from faker import Faker
-from calculator.operations import addition, subtraction, multiplication, division
+from calculator.operations import add, subtract, multiply, divide
 
 fake = Faker()
 
 def generate_test_data(num_records):
-    """
-    Generates random test data for arithmetic operations.
-
-    Parameters:
-    num_records (int): The number of test records to generate.
-
-    Yields:
-    tuple: A tuple containing operand1, operand2, the operation, and the expected result.
-    """
-    # Define the mappings between operation names and functions
+    # Define operation mappings for both Calculator and Calculation tests
     operation_mappings = {
-        'addition': addition,
-        'subtraction': subtraction,
-        'multiplication': multiplication,
-        'division': division
+        'add': add,
+        'subtract': subtract,
+        'multiply': multiply,
+        'divide': divide
     }
-
+    
+    # Generate test data
     for _ in range(num_records):
-        # Randomly generate two operands using Faker
-        operand1 = Decimal(fake.random_number(digits=2))
-        operand2 = Decimal(fake.random_number(digits=2)) if _ % 4 != 3 else Decimal(fake.random_number(digits=1))
-
-        # Randomly select an operation from the mapping
+        a = Decimal(fake.random_number(digits=2))
+        b = Decimal(fake.random_number(digits=2)) if _ % 4 != 3 else Decimal(fake.random_number(digits=1))
         operation_name = fake.random_element(elements=list(operation_mappings.keys()))
         operation_func = operation_mappings[operation_name]
 
-        # Prevent division by zero for division operation by comparing the function name
-        if operation_func.__name__ == 'division':
-            operand2 = Decimal('1') if operand2 == Decimal('0') else operand2
+        # Ensure b is not zero for divide operations
+        if operation_func == divide:
+            b = Decimal('1') if b == Decimal('0') else b
 
         try:
-            # Perform the operation and set the expected result
-            expected = operation_func(operand1, operand2)
+            expected = operation_func(a, b)
         except ZeroDivisionError:
-            # Handle division by zero for division operation
             expected = "ZeroDivisionError"
+        except ValueError as ve:
+            if str(ve) == "Cannot divide by zero":
+                expected = "Cannot divide by zero"
+            else:
+                raise ve  # Re-raise other value errors not related to divide by zero
 
-        # Yield a tuple of operand1, operand2, operation_func, and expected result
-        yield operand1, operand2, operation_func, expected
+        yield a, b, operation_name, operation_func, expected
 
 
 def pytest_addoption(parser):
-    """
-    Adds a command-line option to specify the number of test records.
-
-    Parameters:
-    parser: The pytest command-line parser.
-    """
     parser.addoption("--num_records", action="store", default=5, type=int, help="Number of test records to generate")
 
-
 def pytest_generate_tests(metafunc):
-    """
-    Generates parameterized test cases using the test data.
-
-    Parameters:
-    metafunc: The test function that will be parameterized.
-    """
-    # Check if the test function requires "operand1", "operand2", or "expected" fixtures
-    if {"operand1", "operand2", "expected"}.intersection(set(metafunc.fixturenames)):
-        # Get the number of records to generate from the command-line option
+    # Check if the test is expecting any of the dynamically generated fixtures
+    if {"a", "b", "expected"}.intersection(set(metafunc.fixturenames)):
         num_records = metafunc.config.getoption("num_records")
-        # Generate the test data
         parameters = list(generate_test_data(num_records))
-        # Parametrize the test function with the generated test data
-        metafunc.parametrize("operand1, operand2, operation, expected", parameters)
+
+        # Adjust parameters according to the requested test function
+        if 'operation_name' in metafunc.fixturenames:
+            modified_parameters = [(a, b, op_name, expected) for a, b, op_name, _, expected in parameters]
+        else:
+            modified_parameters = [(a, b, op_func, expected) for a, b, _, op_func, expected in parameters]
+
+        # Parametrize the test function with the generated data
+        metafunc.parametrize("a,b,operation,expected", modified_parameters)

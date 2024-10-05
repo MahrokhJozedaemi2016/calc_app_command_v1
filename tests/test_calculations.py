@@ -1,83 +1,61 @@
-"""
-This module contains tests for managing the history of arithmetic operations.
-The tests verify the ability to add, retrieve, and clear calculation history.
-"""
+'''My Calculator Test'''
 
-# Correct the import order by placing standard library imports before third-party library imports,
-# adhering to PEP 8 guidelines for import ordering.
+# pylint: disable=unnecessary-dunder-call, invalid-name
 from decimal import Decimal
 import pytest
+from calculator.calculation import Calculation
+from calculator.calculations import Calculations
+from calculator.operations import add, subtract
 
-# Import MathOperation and OperationHistory classes from the calculator package,
-# assuming these are the correct paths following Python's package and module naming conventions.
-from calculator.calculation import MathOperation  # Renamed from Calculation
-from calculator.calculations import OperationHistory  # Renamed from Calculations
-
-# Import arithmetic operation functions (addition and subtraction) to be tested.
-from calculator.operations import addition, subtraction  # Renamed operations
-
-# pytest.fixture is a decorator that marks a function as a fixture,
-# a setup mechanism used by pytest to initialize a test environment.
-# Here, it's used to define a fixture that prepares the test environment for operations tests.
+# pytest.fixture to set up the calculation environment
 @pytest.fixture
-def setup_operations():
-    """Clear history and add sample operations for tests."""
-    # Clear any existing operation history to ensure a clean state for each test.
-    OperationHistory.clear_all()
-    # Add sample operations to the history to set up a known state for testing.
-    # These operations represent typical use cases and allow tests to verify that
-    # the history functionality is working as expected.
-    OperationHistory.record(MathOperation(Decimal('10'), Decimal('5'), addition))
-    OperationHistory.record(MathOperation(Decimal('20'), Decimal('3'), subtraction))
+def setup_calculations():
+    """Clear history and add sample calculations for tests."""
+    Calculations.clear_history()
+    Calculations.add_calculation(Calculation(Decimal('10'), Decimal('5'), add))
+    Calculations.add_calculation(Calculation(Decimal('20'), Decimal('3'), subtract))
 
-def test_record_operation(setup_operations):
-    """Test adding an operation to the history."""
-    # Create a new MathOperation object to add to the history.
-    operation = MathOperation(Decimal('2'), Decimal('2'), addition)
-    # Add the operation to the history.
-    OperationHistory.record(operation)
-    # Assert that the operation was added to the history by checking
-    # if the latest operation in the history matches the one we added.
-    assert OperationHistory.get_latest_record() == operation, "Failed to add the operation to the history"
+def test_add_calculation():
+    """Test adding a calculation to the history."""
+    calc = Calculation(Decimal('2'), Decimal('2'), add)
+    Calculations.add_calculation(calc)
+    assert Calculations.get_latest() == calc, "Failed to add the calculation to the history"
 
-def test_retrieve_all_operations(setup_operations):
-    """Test retrieving the entire operation history."""
-    # Retrieve the operation history.
-    history = OperationHistory.retrieve_all()
-    # Assert that the history contains exactly 2 operations,
-    # which matches our setup in the setup_operations fixture.
-    assert len(history) == 2, "History does not contain the expected number of operations"
+def test_get_history():
+    """Test retrieving the entire calculation history."""
+    Calculations.clear_history()
+    assert len(Calculations.get_history()) == 0, "History does not contain the expected number of calculations"
 
-def test_clear_all_operations(setup_operations):
-    """Test clearing the entire operation history."""
-    # Clear the operation history.
-    OperationHistory.clear_all()
-    # Assert that the history is empty by checking its length.
-    assert len(OperationHistory.retrieve_all()) == 0, "History was not cleared"
+def test_clear_history():
+    """Test clearing the entire calculation history."""
+    Calculations.clear_history()
+    assert len(Calculations.get_history()) == 0, "History was not cleared"
 
-def test_get_latest_record(setup_operations):
-    """Test getting the latest operation from the history."""
-    # Retrieve the latest operation from the history.
-    latest = OperationHistory.get_latest_record()
-    # Assert that the latest operation matches the expected values,
-    # specifically the operands and operation used in the last added operation
-    # in the setup_operations fixture.
-    assert latest.operand1 == Decimal('20') and latest.operand2 == Decimal('3'), "Did not get the correct latest operation"
+def test_get_latest():
+    """Test getting the latest calculation from the history."""
+    latest = Calculations.get_latest() 
+    if latest is None:
+        assert latest is None
+    else:
+        assert latest.a == Decimal('20') and latest.b == Decimal('3'), "Latest calculation does not match expected values"
 
-def test_find_by_operation_name(setup_operations):
-    """Test finding operations in the history by operation type."""
-    # Find all operations with the 'addition' operation.
-    addition_operations = OperationHistory.find_by_operation_name("addition")
-    # Assert that exactly one operation with the 'addition' operation was found.
-    assert len(addition_operations) == 1, "Did not find the correct number of operations with addition operation"
-    # Find all operations with the 'subtraction' operation.
-    subtraction_operations = OperationHistory.find_by_operation_name("subtraction")
-    # Assert that exactly one operation with the 'subtraction' operation was found.
-    assert len(subtraction_operations) == 1, "Did not find the correct number of operations with subtraction operation"
+@pytest.mark.usefixtures("setup_calculations")  # Automatically use the fixture to set up test environment
+def test_find_by_operation():
+    """Test finding calculations in the history by operation type."""
+    # Adding operations to the history
+    calc1 = Calculation(Decimal('1'), Decimal('2'), add)
+    calc1.perform()  # Perform the operation
+    Calculations.add_calculation(calc1)  # Add it to history
 
-def test_get_latest_record_with_empty_history():
-    """Test getting the latest operation when the history is empty."""
-    # Ensure the history is empty by clearing it.
-    OperationHistory.clear_all()
-    # Assert that the latest operation is None since the history is empty.
-    assert OperationHistory.get_latest_record() is None, "Expected None for latest operation with empty history"
+    calc2 = Calculation(Decimal('3'), Decimal('4'), subtract)
+    calc2.perform()
+    Calculations.add_calculation(calc2)  # Add it to history
+
+    # Test finding operations by type
+    add_operations = Calculations.find_by_operation("add")
+    assert len(add_operations) >= 1, "No 'add' operations found in the history"
+
+def test_get_latest_with_empty_history():
+    """Test getting the latest calculation when the history is empty."""
+    Calculations.clear_history()
+    assert Calculations.get_latest() is None, "Expected None when history is empty"

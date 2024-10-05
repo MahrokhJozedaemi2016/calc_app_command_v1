@@ -1,20 +1,31 @@
-"""
-This module contains tests for the individual arithmetic operation functions: addition, subtraction, multiplication, and division.
-It verifies the correctness of each operation with different input values.
-"""
+'''Testing Operations'''
 from decimal import Decimal
 import pytest
-from calculator.calculation import MathOperation  # Renamed Calculation to MathOperation
-from calculator.operations import addition, subtraction, multiplication, division  #pylint: disable=unused-import
+from calculator.calculation import Calculation
+from calculator.operations import add, subtract, multiply, divide
 
-def test_operation(operand1, operand2, operation, expected):
-    '''Testing various operations'''
-    operation_instance = MathOperation.initialize(operand1, operand2, operation)  # Using initialize instead of create
-    assert operation_instance.compute() == expected, f"{operation.__name__} operation failed"
+def test_operation_add():
+    '''Testing the addition operation'''
+    calculation = Calculation(Decimal('10'), Decimal('5'), add)
+    assert calculation.perform() == Decimal('15'), "Add operation failed"
 
-# Keeping the divide by zero test as is since it tests a specific case
+def test_operation_subtract():
+    '''Testing the subtract operation'''
+    calculation = Calculation(Decimal('10'), Decimal('5'), subtract)
+    assert calculation.perform() == Decimal('5'), "Subtract operation failed"
+
+def test_operation_multiply():
+    '''Testing the multiply operation'''
+    calculation = Calculation(Decimal('10'), Decimal('5'), multiply)
+    assert calculation.perform() == Decimal('50'), "Multiply operation failed"
+
+def test_operation_divide():
+    '''Testing the divide operation'''
+    calculation = Calculation(Decimal('10'), Decimal('5'), divide)
+    assert calculation.perform() == Decimal('2'), "Divide operation failed"
+
 def test_divide_by_zero():
     '''Testing the divide by zero exception'''
     with pytest.raises(ValueError, match="Cannot divide by zero"):
-        operation_instance = MathOperation(Decimal('10'), Decimal('0'), division)
-        operation_instance.compute()
+        calculation = Calculation(Decimal('10'), Decimal('0'), divide)
+        calculation.perform()
