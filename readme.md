@@ -9,7 +9,7 @@ This project is an interactive command-line calculator application. It allows us
 - Interactive command-line interface.
 - History management to store and clear calculation records.
 - Plugin support for easy extension of operations.
-- Multiprocessing for parallel command execution.
+- **Multiprocessing** for parallel command execution.
 
 ## Installation
 To install and run the project, clone the repository and install the dependencies:
