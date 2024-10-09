@@ -2,7 +2,7 @@ import pytest
 from decimal import Decimal
 from calculator.operations import add, subtract, multiply, divide
 
-# Directly include generate_test_data from your original conftest.py
+# Manually define generate_test_data for this test if needed
 def generate_test_data(num_records):
     """Generate test data for different operations."""
     operation_mappings = {
@@ -40,3 +40,9 @@ def test_generate_test_data():
         assert operation_func in [add, subtract, multiply, divide], "Unexpected operation function"
         result = operation_func(a, b)
         assert result == expected, f"Expected {expected} but got {result}"
+
+# Additional tests for pytest options
+def test_pytest_addoption(pytestconfig):
+    """Test if the --num_records option is correctly retrieved."""
+    default_num_records = pytestconfig.getoption("num_records")
+    assert isinstance(default_num_records, int), "The num_records option should be an integer"
